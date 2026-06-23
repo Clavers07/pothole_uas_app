@@ -372,7 +372,10 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(color: Color(0xFF92949C)),
                             ),
                             const SizedBox(height: 16),
-                            _buildConnectionStatus(),
+                            Visibility(
+                              visible: false,
+                              child: _buildConnectionStatus(),
+                            ),
                             const SizedBox(height: 14),
                             TextFormField(
                               controller: emailController,
