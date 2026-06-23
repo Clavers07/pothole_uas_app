@@ -2,31 +2,34 @@ import 'package:flutter/material.dart';
 import 'chat_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
-import 'sampah_form_page.dart';
+import 'report_form_page.dart';
 
 class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
   @override
-  _DashboardPageState createState() => _DashboardPageState();
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  List allSampah = [];
-  List filteredSampah = [];
+  List allReports = [];
+  List filteredReports = [];
   TextEditingController searchController = TextEditingController();
+
   void refreshData() async {
-    final data = await ApiService().fetchSampah();
+    final data = await ApiService().fetchReports();
     setState(() {
-      allSampah = data;
-      filteredSampah = data;
+      allReports = data;
+      filteredReports = data;
     });
   }
 
   void filterData(String query) {
     setState(() {
-      filteredSampah = allSampah
+      filteredReports = allReports
           .where(
             (item) =>
-                item['nama_sampah'].toLowerCase().contains(query.toLowerCase()),
+                item['jalan'].toString().toLowerCase().contains(query.toLowerCase()),
           )
           .toList();
     });
@@ -35,65 +38,101 @@ class _DashboardPageState extends State<DashboardPage> {
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         title: const Text("Logout"),
         content: const Text("Apakah yakin ingin keluar dari aplikasi?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // Menutup dialog
-            child: const Text("Batal"),
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text("Batal", style: TextStyle(color: Color(0xFF92949C))),
           ),
           TextButton(
             onPressed: () async {
-              // 1. Hapus token dari memori HP
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('token');
-              // 2. Kembali ke halaman login dan hapus riwayat navigasi
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/',
-                  (route) => false,
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Berhasil keluar")),
-                );
-              }
+              if (!mounted) return;
+              if (!dialogCtx.mounted) return;
+              Navigator.pop(dialogCtx);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/',
+                (route) => false,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Berhasil keluar")),
+              );
             },
-            child: const Text("Keluar", style: TextStyle(color: Colors.red)),
+            child: const Text("Keluar", style: TextStyle(color: Color(0xFFEB445A))),
           ),
         ],
       ),
     );
   }
 
-  // VALIDASI: Dialog Konfirmasi Hapus
-  void _confirmDelete(int id, String nama) {
+  void _confirmDelete(int id, String namaJalan) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         title: const Text("Konfirmasi Hapus"),
-        content: Text("Apakah yakin ingin menghapus data '$nama'?"),
+        content: Text("Apakah yakin ingin menghapus data '$namaJalan'?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Batal"),
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text("Batal", style: TextStyle(color: Color(0xFF92949C))),
           ),
           TextButton(
             onPressed: () async {
-              await ApiService().deleteSampah(id);
-              Navigator.pop(context);
+              await ApiService().deleteReport(id);
+              if (!mounted) return;
+              if (!dialogCtx.mounted) return;
+              Navigator.pop(dialogCtx);
               refreshData();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text("Data berhasil dihapus"),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Color(0xFFEB445A),
                 ),
               );
             },
-            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+            child: const Text("Hapus", style: TextStyle(color: Color(0xFFEB445A))),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLevelBadge(String level) {
+    Color badgeColor;
+    switch (level.toLowerCase()) {
+      case 'ringan':
+        badgeColor = const Color(0xFF2DD36F); // Ionic success (green)
+        break;
+      case 'sedang':
+        badgeColor = const Color(0xFFFFC409); // Ionic warning (yellow/orange)
+        break;
+      case 'berat':
+        badgeColor = const Color(0xFFEB445A); // Ionic danger (red)
+        break;
+      default:
+        badgeColor = const Color(0xFF92949C); // Ionic medium (grey)
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        level.toUpperCase(),
+        style: TextStyle(
+          color: badgeColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -107,23 +146,25 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFF0F0F0),
       appBar: AppBar(
         title: const Text(
-          "Bank Sampah",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          "Pothole Reports",
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            onPressed: () =>
-                _confirmLogout(context), // Memanggil dialog konfirmasi
+            icon: const Icon(Icons.logout_rounded, color: Color(0xFFEB445A)),
+            onPressed: () => _confirmLogout(context),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey[200],
+            height: 0.5,
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -132,119 +173,141 @@ class _DashboardPageState extends State<DashboardPage> {
             child: TextField(
               controller: searchController,
               onChanged: filterData,
-              decoration: InputDecoration(
-                hintText: "Cari jenis sampah...",
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide.none,
-                ),
+              decoration: const InputDecoration(
+                hintText: "Cari nama jalan...",
+                prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF92949C)),
               ),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: filteredSampah.length,
-              itemBuilder: (context, index) {
-                final item = filteredSampah[index];
-                return Card(
-                  elevation: 0,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(10),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: item['pic'] != null
-                          ? Image.network(
-                              "http://192.168.18.12:3000/uploads/${item['pic']}",
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              color: Colors.green[100],
-                              width: 60,
-                              height: 60,
-                              child: const Icon(
-                                Icons.recycling,
-                                color: Colors.green,
-                              ),
-                            ),
-                    ),
-                    title: Text(
-                      item['nama_sampah'],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+            child: filteredReports.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: Colors.blue,
+                        Icon(Icons.report_problem_outlined,
+                            size: 64, color: const Color(0xFF92949C).withOpacity(0.5)),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Tidak ada data laporan",
+                          style: TextStyle(
+                            color: Color(0xFF92949C),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          onPressed: () async {
-                            bool? updated = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    SampahFormPage(sampah: item),
-                              ),
-                            );
-                            if (updated == true) refreshData();
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
-                          ),
-                          onPressed: () =>
-                              _confirmDelete(item['id'], item['nama_sampah']),
                         ),
                       ],
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filteredReports.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredReports[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(12),
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: item['pic'] != null
+                                ? Image.network(
+                                    "http://192.168.18.226:3000/uploads/${item['pic']}",
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: const Color(0xFFFFC409).withOpacity(0.15),
+                                    width: 60,
+                                    height: 60,
+                                    child: const Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Color(0xFFFFC409),
+                                      size: 32,
+                                    ),
+                                  ),
+                          ),
+                          title: Text(
+                            item['jalan'] ?? 'Jalan Tidak Diketahui',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF222428),
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: _buildLevelBadge(
+                                  item['level_kerusakan'] ?? 'unknown'),
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  color: Color(0xFF3880FF), // Ionic primary
+                                ),
+                                onPressed: () async {
+                                  bool? updated = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ReportFormPage(report: item),
+                                    ),
+                                  );
+                                  if (updated == true) refreshData();
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFEB445A), // Ionic danger
+                                ),
+                                onPressed: () =>
+                                    _confirmDelete(item['id'], item['jalan']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Tombol Chatbot NLP
+          // Tombol Chatbot NLP (Ionic secondary color)
           FloatingActionButton.small(
             heroTag: "btnChat",
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: const Color(0xFF3DC2FF),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage()),
               );
             },
-            child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
           ),
           const SizedBox(height: 12),
-          // Tombol Tambah Sampah (Utama)
+          // Tombol Tambah Report (Ionic primary color)
           FloatingActionButton(
             heroTag: "btnAdd",
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF3880FF),
             onPressed: () async {
               bool? added = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SampahFormPage()),
+                MaterialPageRoute(builder: (context) => const ReportFormPage()),
               );
               if (added == true) refreshData();
             },
-            child: const Icon(Icons.add, color: Colors.white),
+            child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
           ),
         ],
       ),

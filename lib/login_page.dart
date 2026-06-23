@@ -18,21 +18,60 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   bool _isRedirecting = false;
+
+  // State untuk status koneksi API
+  bool _isCheckingConnection = false;
+  bool? _isServerConnected;
+  String _connectionMessage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _checkServer();
+  }
+
+  Future<void> _checkServer() async {
+    setState(() {
+      _isCheckingConnection = true;
+      _isServerConnected = null;
+      _connectionMessage = "Memeriksa koneksi server...";
+    });
+    final result = await ApiService().checkConnection();
+    if (!mounted) return;
+    setState(() {
+      _isCheckingConnection = false;
+      _isServerConnected = result['success'];
+      _connectionMessage = result['message'];
+    });
+  }
+
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      final token = await ApiService().login(
-        emailController.text.trim(),
-        passwordController.text,
-      );
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      if (token != null) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      } else {
+      try {
+        final token = await ApiService().login(
+          emailController.text.trim(),
+          passwordController.text,
+        );
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        if (token != null) {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Email atau Password salah!"),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Email atau Password salah!"),
+          SnackBar(
+            content: Text("Gagal terhubung ke server: $e"),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -57,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
       // 1. Kirim gambar ke Flask untuk pengenalan wajah
       final faceRequest = http.MultipartRequest(
         'POST',
-        Uri.parse('http://192.168.18.12:5000/recognize-face'),
+        Uri.parse('http://192.168.18.226:5000/recognize-face'),
       );
       faceRequest.files.add(
         await http.MultipartFile.fromPath('image', pickedFile.path),
@@ -89,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
       }
       // 2. Kirim face_label ke Node.js agar Node.js yang membuat token aplikasi
       final nodeResponse = await http.post(
-        Uri.parse('http://192.168.18.12:3000/login-face'),
+        Uri.parse('http://192.168.18.226:3000/login-face'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'face_label': faceLabel}),
       );
@@ -152,6 +191,97 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Widget _buildConnectionStatus() {
+    Color bgColor;
+    Color textColor;
+    Color iconColor;
+    IconData icon;
+    String statusLabel;
+
+    if (_isCheckingConnection) {
+      bgColor = Colors.blue.shade50;
+      textColor = Colors.blue.shade800;
+      iconColor = Colors.blue.shade600;
+      icon = Icons.sync;
+      statusLabel = "Memeriksa koneksi...";
+    } else if (_isServerConnected == true) {
+      bgColor = Colors.green.shade50;
+      textColor = Colors.green.shade800;
+      iconColor = Colors.green.shade600;
+      icon = Icons.check_circle_outline;
+      statusLabel = "Server Terhubung";
+    } else if (_isServerConnected == false) {
+      bgColor = Colors.red.shade50;
+      textColor = Colors.red.shade800;
+      iconColor = Colors.red.shade600;
+      icon = Icons.error_outline;
+      statusLabel = "Koneksi Gagal";
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: iconColor.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          _isCheckingConnection
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                  ),
+                )
+              : Icon(icon, color: iconColor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  statusLabel,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                    fontSize: 14,
+                  ),
+                ),
+                if (_connectionMessage.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    _connectionMessage,
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.85),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (!_isCheckingConnection)
+            IconButton(
+              icon: Icon(Icons.refresh_rounded, color: iconColor, size: 20),
+              constraints: const BoxConstraints(),
+              padding: EdgeInsets.zero,
+              onPressed: _checkServer,
+              tooltip: "Coba lagi",
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRedirectPreloader() {
     return Container(
       color: Colors.black.withOpacity(0.45),
@@ -187,16 +317,16 @@ class _LoginPageState extends State<LoginPage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF2E7D32), Color(0xFF81C784)],
+                colors: [Color(0xFF3880FF), Color(0xFF4C8DFF)],
               ),
             ),
             child: Column(
               children: [
                 const SizedBox(height: 80),
-                const Icon(Icons.recycling, size: 80, color: Colors.white),
+                const Icon(Icons.report_problem_rounded, size: 80, color: Colors.white),
                 const SizedBox(height: 10),
                 const Text(
-                  "BANK SAMPAH",
+                  "POTHOLE REPORT",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -205,7 +335,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const Text(
-                  "Kelola sampah jadi berkah",
+                  "Laporkan jalan berlubang di sekitarmu",
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
                 const SizedBox(height: 40),
@@ -218,8 +348,8 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
                       ),
                     ),
                     child: SingleChildScrollView(
@@ -233,23 +363,23 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
+                                color: Color(0xFF222428),
                               ),
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               "Silakan login untuk melanjutkan",
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(color: Color(0xFF92949C)),
                             ),
-                            const SizedBox(height: 30),
+                            const SizedBox(height: 16),
+                            _buildConnectionStatus(),
+                            const SizedBox(height: 14),
                             TextFormField(
                               controller: emailController,
                               keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: "Email",
-                                prefixIcon: const Icon(Icons.email_outlined),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
+                                prefixIcon: Icon(Icons.email_outlined),
                               ),
                               validator: (value) => value!.isEmpty
                                   ? "Email tidak boleh kosong"
@@ -273,25 +403,22 @@ class _LoginPageState extends State<LoginPage> {
                                         !_isPasswordVisible,
                                   ),
                                 ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
                               ),
                               validator: (value) => value!.isEmpty
                                   ? "Password tidak boleh kosong"
                                   : null,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 30),
                             SizedBox(
                               width: double.infinity,
-                              height: 55,
+                              height: 48,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blueAccent,
+                                  backgroundColor: const Color(0xFF3DC2FF), // Ionic secondary
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  elevation: 5,
+                                  elevation: 0,
                                 ),
                                 onPressed: (_isLoading || _isRedirecting)
                                     ? null
@@ -310,23 +437,23 @@ class _LoginPageState extends State<LoginPage> {
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 16,
+                                          fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
-                              height: 55,
+                              height: 48,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2E7D32),
+                                  backgroundColor: const Color(0xFF3880FF), // Ionic primary
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  elevation: 5,
+                                  elevation: 0,
                                 ),
                                 onPressed: (_isLoading || _isRedirecting)
                                     ? null
@@ -339,7 +466,7 @@ class _LoginPageState extends State<LoginPage> {
                                         "MASUK",
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
