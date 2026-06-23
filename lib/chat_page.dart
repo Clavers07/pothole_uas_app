@@ -38,16 +38,8 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F8), // Ionic light background
       appBar: AppBar(
-        title: const Text("Tanya Pothole AI"),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey[200],
-            height: 0.5,
-          ),
-        ),
+        title: const Text("Tanya Pothole AI", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
       body: Column(
         children: [
@@ -60,13 +52,13 @@ class _ChatPageState extends State<ChatPage> {
                         Icon(
                           Icons.chat_bubble_outline_rounded,
                           size: 64,
-                          color: const Color(0xFF92949C).withOpacity(0.5),
+                          color: Colors.grey.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         const Text(
                           "Mulai percakapan dengan Pothole AI",
                           style: TextStyle(
-                            color: Color(0xFF92949C),
+                            color: Colors.grey,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -93,26 +85,22 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                           decoration: BoxDecoration(
                             color: isUser
-                                ? const Color(0xFF3880FF) // Ionic primary
-                                : Colors.white,          // White card
+                                ? const Color(0xFFFF9100)
+                                : const Color(0xFF18181C),
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
                               topRight: const Radius.circular(16),
                               bottomLeft: Radius.circular(isUser ? 16 : 4),
                               bottomRight: Radius.circular(isUser ? 4 : 16),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            border: isUser
+                                ? null
+                                : Border.all(color: Colors.grey[850]!, width: 0.5),
                           ),
                           child: Text(
                             msg['text'],
                             style: TextStyle(
-                              color: isUser ? Colors.white : const Color(0xFF222428),
+                              color: Colors.white,
                               fontSize: 15,
                               height: 1.3,
                             ),
@@ -124,7 +112,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
           if (_isTyping)
             const LinearProgressIndicator(
-              color: Color(0xFF3880FF),
+              color: Color(0xFFFF9100),
               backgroundColor: Colors.transparent,
             ),
           SafeArea(
@@ -137,20 +125,20 @@ class _ChatPageState extends State<ChatPage> {
                       controller: _controller,
                       decoration: InputDecoration(
                         hintText: "Tanyakan tentang jalan berlubang...",
-                        hintStyle: const TextStyle(color: Color(0xFF92949C)),
+                        hintStyle: const TextStyle(color: Colors.grey),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: const Color(0xFF18181C),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,
-                          vertical: 10,
+                          vertical: 12,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                          borderSide: BorderSide(color: Colors.grey[850]!, width: 1),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: Color(0xFF3880FF), width: 1.5),
+                          borderSide: const BorderSide(color: Color(0xFFFF9100), width: 1.5),
                         ),
                       ),
                     ),
@@ -159,10 +147,10 @@ class _ChatPageState extends State<ChatPage> {
                   GestureDetector(
                     onTap: _sendMessage,
                     child: Container(
-                      height: 44,
-                      width: 44,
+                      height: 48,
+                      width: 48,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF3880FF),
+                        color: Color(0xFFFF9100),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(

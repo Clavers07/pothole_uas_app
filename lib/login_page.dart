@@ -19,31 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _isRedirecting = false;
 
-  // State untuk status koneksi API
-  bool _isCheckingConnection = false;
-  bool? _isServerConnected;
-  String _connectionMessage = "";
 
-  @override
-  void initState() {
-    super.initState();
-    _checkServer();
-  }
-
-  Future<void> _checkServer() async {
-    setState(() {
-      _isCheckingConnection = true;
-      _isServerConnected = null;
-      _connectionMessage = "Memeriksa koneksi server...";
-    });
-    final result = await ApiService().checkConnection();
-    if (!mounted) return;
-    setState(() {
-      _isCheckingConnection = false;
-      _isServerConnected = result['success'];
-      _connectionMessage = result['message'];
-    });
-  }
 
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
@@ -191,96 +167,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildConnectionStatus() {
-    Color bgColor;
-    Color textColor;
-    Color iconColor;
-    IconData icon;
-    String statusLabel;
 
-    if (_isCheckingConnection) {
-      bgColor = Colors.blue.shade50;
-      textColor = Colors.blue.shade800;
-      iconColor = Colors.blue.shade600;
-      icon = Icons.sync;
-      statusLabel = "Memeriksa koneksi...";
-    } else if (_isServerConnected == true) {
-      bgColor = Colors.green.shade50;
-      textColor = Colors.green.shade800;
-      iconColor = Colors.green.shade600;
-      icon = Icons.check_circle_outline;
-      statusLabel = "Server Terhubung";
-    } else if (_isServerConnected == false) {
-      bgColor = Colors.red.shade50;
-      textColor = Colors.red.shade800;
-      iconColor = Colors.red.shade600;
-      icon = Icons.error_outline;
-      statusLabel = "Koneksi Gagal";
-    } else {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: iconColor.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          _isCheckingConnection
-              ? SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(iconColor),
-                  ),
-                )
-              : Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  statusLabel,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                    fontSize: 14,
-                  ),
-                ),
-                if (_connectionMessage.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    _connectionMessage,
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.85),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (!_isCheckingConnection)
-            IconButton(
-              icon: Icon(Icons.refresh_rounded, color: iconColor, size: 20),
-              constraints: const BoxConstraints(),
-              padding: EdgeInsets.zero,
-              onPressed: _checkServer,
-              tooltip: "Coba lagi",
-            ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildRedirectPreloader() {
     return Container(
@@ -317,16 +204,16 @@ class _LoginPageState extends State<LoginPage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF3880FF), Color(0xFF4C8DFF)],
+                colors: [Color(0xFF0F0F11), Color(0xFF1C1C22)],
               ),
             ),
             child: Column(
               children: [
                 const SizedBox(height: 80),
-                const Icon(Icons.report_problem_rounded, size: 80, color: Colors.white),
+                const Icon(Icons.add_road_rounded, size: 80, color: Color(0xFFFF9100)),
                 const SizedBox(height: 10),
                 const Text(
-                  "POTHOLE REPORT",
+                  "JALAN BERLUBANG",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -335,8 +222,8 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const Text(
-                  "Laporkan jalan berlubang di sekitarmu",
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                  "Aplikasi Pelaporan Kerusakan Jalan",
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
                 const SizedBox(height: 40),
                 Expanded(
@@ -346,10 +233,10 @@ class _LoginPageState extends State<LoginPage> {
                       vertical: 40,
                     ),
                     decoration: const BoxDecoration(
-                      color: Colors.white,
+                      color: Color(0xFF18181C),
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
+                        topLeft: Radius.circular(40),
+                        topRight: Radius.circular(40),
                       ),
                     ),
                     child: SingleChildScrollView(
@@ -363,20 +250,15 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF222428),
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               "Silakan login untuk melanjutkan",
-                              style: TextStyle(color: Color(0xFF92949C)),
+                              style: TextStyle(color: Colors.grey),
                             ),
-                            const SizedBox(height: 16),
-                            Visibility(
-                              visible: false,
-                              child: _buildConnectionStatus(),
-                            ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 30),
                             TextFormField(
                               controller: emailController,
                               keyboardType: TextInputType.emailAddress,
@@ -414,18 +296,18 @@ class _LoginPageState extends State<LoginPage> {
                             const SizedBox(height: 30),
                             SizedBox(
                               width: double.infinity,
-                              height: 48,
+                              height: 55,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF3DC2FF), // Ionic secondary
+                                  backgroundColor: const Color(0xFFFF9100),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(15),
                                   ),
                                   elevation: 0,
                                 ),
                                 onPressed: (_isLoading || _isRedirecting)
                                     ? null
-                                    : recognizeFaceAndLogin,
+                                    : _handleLogin,
                                 child: _isLoading
                                     ? const SizedBox(
                                         width: 24,
@@ -436,42 +318,70 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                       )
                                     : const Text(
-                                        "MASUK DENGAN PENGENALAN WAJAH",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF3880FF), // Ionic primary
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                onPressed: (_isLoading || _isRedirecting)
-                                    ? null
-                                    : _handleLogin,
-                                child: _isLoading
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white,
-                                      )
-                                    : const Text(
                                         "MASUK",
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: Colors.grey[850], thickness: 1)),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    "OR",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(child: Divider(color: Colors.grey[850], thickness: 1)),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFFFF9100), width: 1.5),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                ),
+                                onPressed: (_isLoading || _isRedirecting)
+                                    ? null
+                                    : recognizeFaceAndLogin,
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Color(0xFFFF9100),
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.face_unlock_outlined, color: Color(0xFFFF9100), size: 22),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            "MASUK DENGAN WAJAH",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                               ),
                             ),

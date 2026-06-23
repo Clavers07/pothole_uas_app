@@ -15,98 +15,95 @@ class MyApp extends StatelessWidget {
       title: 'Pothole Report',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // ═══ Ionic-Like Theme (Vanilla Flutter) ═══
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3880FF),
-          primary: const Color(0xFF3880FF),
-          secondary: const Color(0xFF3DC2FF),
-          error: const Color(0xFFEB445A),
-          surface: Colors.white,
+        brightness: Brightness.dark,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFF9100),
+          secondary: Color(0xFFFFB300),
+          surface: Color(0xFF18181C),
+          error: Colors.redAccent,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF0F0F0),
+        scaffoldBackgroundColor: const Color(0xFF0F0F11),
 
-        // AppBar Ionic-like toolbar
         appBarTheme: const AppBarTheme(
-          elevation: 0.5,
-          backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF222428),
+          elevation: 0,
+          backgroundColor: Color(0xFF18181C),
+          foregroundColor: Colors.white,
           centerTitle: true,
           titleTextStyle: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF222428),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
             letterSpacing: 0.15,
           ),
         ),
 
-        // ElevatedButton Ionic-like flat styling
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF3880FF),
+            backgroundColor: const Color(0xFFFF9100),
             foregroundColor: Colors.white,
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             textStyle: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
           ),
         ),
 
-        // TextFormField/Input Ionic-like styling
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.white,
+          fillColor: const Color(0xFF18181C),
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey[850]!, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide:
-                const BorderSide(color: Color(0xFF3880FF), width: 2),
+                const BorderSide(color: Color(0xFFFF9100), width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide:
-                const BorderSide(color: Color(0xFFEB445A), width: 1),
+                const BorderSide(color: Colors.redAccent, width: 1),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             borderSide:
-                const BorderSide(color: Color(0xFFEB445A), width: 2),
+                const BorderSide(color: Colors.redAccent, width: 1.5),
           ),
-          labelStyle: const TextStyle(color: Color(0xFF92949C)),
+          labelStyle: const TextStyle(color: Colors.grey),
         ),
 
-        // Card Ionic-like styling
         cardTheme: CardThemeData(
+          color: const Color(0xFF18181C),
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: BorderSide(color: Colors.grey[200]!, width: 0.5),
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey[850]!, width: 0.5),
           ),
         ),
 
-        // FAB Ionic-like styling
-        floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFF3880FF),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: const Color(0xFFFF9100),
           foregroundColor: Colors.white,
           elevation: 4,
-          shape: CircleBorder(),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
 
-        // SnackBar/Toast Ionic-like styling
         snackBarTheme: SnackBarThemeData(
-          backgroundColor: const Color(0xFF222428),
+          backgroundColor: const Color(0xFF18181C),
+          contentTextStyle: const TextStyle(color: Colors.white),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),

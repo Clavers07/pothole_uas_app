@@ -102,38 +102,43 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-
   Widget _buildLevelBadge(String level) {
     Color badgeColor;
     switch (level.toLowerCase()) {
       case 'ringan':
-        badgeColor = const Color(0xFF2DD36F); // Ionic success (green)
+        badgeColor = const Color(0xFF4CAF50);
         break;
       case 'sedang':
-        badgeColor = const Color(0xFFFFC409); // Ionic warning (yellow/orange)
+        badgeColor = const Color(0xFFFF9800);
         break;
       case 'berat':
-        badgeColor = const Color(0xFFEB445A); // Ionic danger (red)
+        badgeColor = const Color(0xFFF44336);
         break;
       default:
-        badgeColor = const Color(0xFF92949C); // Ionic medium (grey)
+        badgeColor = Colors.grey;
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        level.toUpperCase(),
-        style: TextStyle(
-          color: badgeColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: badgeColor,
+            shape: BoxShape.circle,
+          ),
         ),
-      ),
+        const SizedBox(width: 6),
+        Text(
+          level.toUpperCase(),
+          style: TextStyle(
+            color: Colors.grey[400],
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 
@@ -146,25 +151,18 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
       appBar: AppBar(
         title: const Text(
           "Pothole Reports",
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFFEB445A)),
+            icon: const Icon(Icons.power_settings_new_rounded, color: Colors.redAccent),
             onPressed: () => _confirmLogout(context),
+            tooltip: "Logout",
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            color: Colors.grey[200],
-            height: 0.5,
-          ),
-        ),
       ),
       body: Column(
         children: [
@@ -175,7 +173,7 @@ class _DashboardPageState extends State<DashboardPage> {
               onChanged: filterData,
               decoration: const InputDecoration(
                 hintText: "Cari nama jalan...",
-                prefixIcon: Icon(Icons.search_rounded, color: Color(0xFF92949C)),
+                prefixIcon: Icon(Icons.search_rounded, color: Colors.grey),
               ),
             ),
           ),
@@ -186,12 +184,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.report_problem_outlined,
-                            size: 64, color: const Color(0xFF92949C).withOpacity(0.5)),
+                            size: 64, color: Colors.grey.withOpacity(0.5)),
                         const SizedBox(height: 16),
                         const Text(
                           "Tidak ada data laporan",
                           style: TextStyle(
-                            color: Color(0xFF92949C),
+                            color: Colors.grey,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -218,21 +216,21 @@ class _DashboardPageState extends State<DashboardPage> {
                                     fit: BoxFit.cover,
                                   )
                                 : Container(
-                                    color: const Color(0xFFFFC409).withOpacity(0.15),
+                                    color: const Color(0xFF1C1C22),
                                     width: 60,
                                     height: 60,
                                     child: const Icon(
-                                      Icons.warning_amber_rounded,
-                                      color: Color(0xFFFFC409),
-                                      size: 32,
+                                      Icons.image_not_supported_outlined,
+                                      color: Colors.grey,
+                                      size: 24,
                                     ),
                                   ),
                           ),
                           title: Text(
                             item['jalan'] ?? 'Jalan Tidak Diketahui',
                             style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF222428),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                               fontSize: 16,
                             ),
                           ),
@@ -244,32 +242,48 @@ class _DashboardPageState extends State<DashboardPage> {
                                   item['level_kerusakan'] ?? 'unknown'),
                             ),
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit_outlined,
-                                  color: Color(0xFF3880FF), // Ionic primary
+                          trailing: PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.grey[850]!, width: 0.5),
+                            ),
+                            color: const Color(0xFF1C1C22),
+                            elevation: 8,
+                            onSelected: (value) async {
+                              if (value == 'edit') {
+                                bool? updated = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ReportFormPage(report: item),
+                                  ),
+                                );
+                                if (updated == true) refreshData();
+                              } else if (value == 'delete') {
+                                _confirmDelete(item['id'], item['jalan']);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => [
+                              const PopupMenuItem<String>(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit_outlined, size: 20, color: Color(0xFFFF9100)),
+                                    SizedBox(width: 10),
+                                    Text("Edit Laporan", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ],
                                 ),
-                                onPressed: () async {
-                                  bool? updated = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ReportFormPage(report: item),
-                                    ),
-                                  );
-                                  if (updated == true) refreshData();
-                                },
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline_rounded,
-                                  color: Color(0xFFEB445A), // Ionic danger
+                              const PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent),
+                                    SizedBox(width: 10),
+                                    Text("Hapus", style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ],
                                 ),
-                                onPressed: () =>
-                                    _confirmDelete(item['id'], item['jalan']),
                               ),
                             ],
                           ),
@@ -283,23 +297,28 @@ class _DashboardPageState extends State<DashboardPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Tombol Chatbot NLP (Ionic secondary color)
           FloatingActionButton.small(
             heroTag: "btnChat",
-            backgroundColor: const Color(0xFF3DC2FF),
+            backgroundColor: const Color(0xFF18181C),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.grey[850]!, width: 1),
+            ),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage()),
               );
             },
-            child: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
+            child: const Icon(Icons.forum_outlined, color: Color(0xFFFF9100), size: 18),
           ),
           const SizedBox(height: 12),
-          // Tombol Tambah Report (Ionic primary color)
           FloatingActionButton(
             heroTag: "btnAdd",
-            backgroundColor: const Color(0xFF3880FF),
+            backgroundColor: const Color(0xFFFF9100),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             onPressed: () async {
               bool? added = await Navigator.push(
                 context,
