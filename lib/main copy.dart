@@ -9,20 +9,18 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('token');
 
-  runApp(
-    JalanBerlubangApp(
-      isLoggedIn: token != null,
-    ),
-  );
+  runApp(JalanBerlubangApp(
+    isLoggedIn: token != null,
+  ));
 }
 
 class JalanBerlubangApp extends StatelessWidget {
-  final bool isLoggedIn;
-
   const JalanBerlubangApp({
     super.key,
     required this.isLoggedIn,
   });
+
+  final bool isLoggedIn;
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +34,6 @@ class JalanBerlubangApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.orange,
         ),
-
-        scaffoldBackgroundColor: Colors.grey.shade100,
 
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.orange,
